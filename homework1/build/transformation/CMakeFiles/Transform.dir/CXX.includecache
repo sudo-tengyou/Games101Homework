@@ -1,0 +1,20 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/cs18/Desktop/homework/homework1/transformation/transform.cpp
+transform.h
+/home/cs18/Desktop/homework/homework1/transformation/transform.h
+
+/home/cs18/Desktop/homework/homework1/transformation/transform.h
+cmath
+-
+eigen3/Eigen/Core
+-
+eigen3/Eigen/Dense
+-
+

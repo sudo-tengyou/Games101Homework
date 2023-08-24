@@ -1,0 +1,6 @@
+/home/cs18/Desktop/homework/homework1/build/CMakeFiles/rebuild_cache.dir
+/home/cs18/Desktop/homework/homework1/build/CMakeFiles/Transformation.dir
+/home/cs18/Desktop/homework/homework1/build/CMakeFiles/edit_cache.dir
+/home/cs18/Desktop/homework/homework1/build/transformation/CMakeFiles/rebuild_cache.dir
+/home/cs18/Desktop/homework/homework1/build/transformation/CMakeFiles/Transform.dir
+/home/cs18/Desktop/homework/homework1/build/transformation/CMakeFiles/edit_cache.dir

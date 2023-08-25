@@ -1,6 +1,3 @@
-/home/cs18/Desktop/homework/homework1/build/CMakeFiles/rebuild_cache.dir
-/home/cs18/Desktop/homework/homework1/build/CMakeFiles/Transformation.dir
-/home/cs18/Desktop/homework/homework1/build/CMakeFiles/edit_cache.dir
-/home/cs18/Desktop/homework/homework1/build/transformation/CMakeFiles/rebuild_cache.dir
-/home/cs18/Desktop/homework/homework1/build/transformation/CMakeFiles/Transform.dir
-/home/cs18/Desktop/homework/homework1/build/transformation/CMakeFiles/edit_cache.dir
+/home/cs18/Desktop/homework/Games101Homework/homework2/build/CMakeFiles/rebuild_cache.dir
+/home/cs18/Desktop/homework/Games101Homework/homework2/build/CMakeFiles/Rasterizer.dir
+/home/cs18/Desktop/homework/Games101Homework/homework2/build/CMakeFiles/edit_cache.dir

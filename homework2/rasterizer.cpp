@@ -8,6 +8,7 @@
 #include "rasterizer.hpp"
 #include <opencv2/opencv.hpp>
 #include <math.h>
+using namespace std;
 
 
 rst::pos_buf_id rst::rasterizer::load_positions(const std::vector<Eigen::Vector3f> &positions)
@@ -39,18 +40,24 @@ auto to_vec4(const Eigen::Vector3f& v3, float w = 1.0f)
     return Vector4f(v3.x(), v3.y(), v3.z(), w);
 }
 
-
-static bool insideTriangle(int x, int y, const Vector3f* _v)
-{   
-    // TODO : Implement this function to check if the point (x, y) is inside the triangle represented by _v[0], _v[1], _v[2]
-}
-
 static std::tuple<float, float, float> computeBarycentric2D(float x, float y, const Vector3f* v)
 {
     float c1 = (x*(v[1].y() - v[2].y()) + (v[2].x() - v[1].x())*y + v[1].x()*v[2].y() - v[2].x()*v[1].y()) / (v[0].x()*(v[1].y() - v[2].y()) + (v[2].x() - v[1].x())*v[0].y() + v[1].x()*v[2].y() - v[2].x()*v[1].y());
     float c2 = (x*(v[2].y() - v[0].y()) + (v[0].x() - v[2].x())*y + v[2].x()*v[0].y() - v[0].x()*v[2].y()) / (v[1].x()*(v[2].y() - v[0].y()) + (v[0].x() - v[2].x())*v[1].y() + v[2].x()*v[0].y() - v[0].x()*v[2].y());
     float c3 = (x*(v[0].y() - v[1].y()) + (v[1].x() - v[0].x())*y + v[0].x()*v[1].y() - v[1].x()*v[0].y()) / (v[2].x()*(v[0].y() - v[1].y()) + (v[1].x() - v[0].x())*v[2].y() + v[0].x()*v[1].y() - v[1].x()*v[0].y());
     return {c1,c2,c3};
+}
+
+static bool insideTriangle(int x, int y, const Vector3f* _v)
+{   
+    // TODO : Implement this function to check if the point (x, y) is inside the triangle represented by _v[0], _v[1], _v[2]
+    auto barycentricCoord = computeBarycentric2D(x, y, _v);
+    return get<0>(barycentricCoord) >= 0 &&
+           get<0>(barycentricCoord) <= 1 &&
+           get<1>(barycentricCoord) >= 0 &&
+           get<1>(barycentricCoord) <= 1 &&
+           get<2>(barycentricCoord) >= 0 &&
+           get<2>(barycentricCoord) <= 1;
 }
 
 void rst::rasterizer::draw(pos_buf_id pos_buffer, ind_buf_id ind_buffer, col_buf_id col_buffer, Primitive type)
@@ -116,6 +123,29 @@ void rst::rasterizer::rasterize_triangle(const Triangle& t) {
     //z_interpolated *= w_reciprocal;
 
     // TODO : set the current pixel (use the set_pixel function) to the color of the triangle (use getColor function) if it should be painted.
+
+    array<Eigen::Vector2i, 2> boundingBox;
+    boundingBox[0][0] = min(v[0][0], min(v[1][0], v[2][0]));
+    boundingBox[0][1] = min(v[0][1], min(v[1][1], v[2][1]));
+    boundingBox[1][0] = max(v[0][0], max(v[1][0], v[2][0]));
+    boundingBox[1][1] = max(v[0][1], max(v[1][1], v[2][1]));
+    for(int x = boundingBox[0][0]; x <= boundingBox[1][0]; ++x) {
+        for(int y = boundingBox[0][1]; y <= boundingBox[1][1]; ++y) {
+            if(insideTriangle(x, y, t.v)) {
+                auto[alpha, beta, gamma] = computeBarycentric2D(x, y, t.v);  // can be improved
+                float w_reciprocal = 1.0/(alpha / v[0].w() + beta / v[1].w() + gamma / v[2].w());
+                float z_interpolated = alpha * v[0].z() / v[0].w() + beta * v[1].z() / v[1].w() + gamma * v[2].z() / v[2].w();
+                z_interpolated *= w_reciprocal;
+                // don't need to reverse z
+                if(depth_buf[get_index(x, y)] >= z_interpolated) {
+                    depth_buf[get_index(x, y)] = z_interpolated;
+                    Eigen::Vector3f _point(x, y, z_interpolated);
+                    Eigen::Vector3f _color = t.getColor();
+                    set_pixel(_point, _color);
+                }
+            }
+        }
+    }
 }
 
 void rst::rasterizer::set_model(const Eigen::Matrix4f& m)

@@ -1,5 +1,5 @@
 # Games101Homework
-this is my resolution of games101 homework.  
+This is my resolution of games101 homework.  
 
 Environment: Ubuntu18.04  
 

@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
+link_libraries(pthread)
 project(RayTracing)
 
 set(CMAKE_CXX_STANDARD 17)

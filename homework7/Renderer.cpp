@@ -1,11 +1,15 @@
 //
 // Created by goksu on 2/25/20.
 //
-
 #include <fstream>
 #include "Scene.hpp"
 #include "Renderer.hpp"
+#include <mutex>
+#include <thread>
 
+
+std::mutex progressMtx;
+int progress = 0;
 
 inline float deg2rad(const float& deg) { return deg * M_PI / 180.0; }
 
@@ -24,23 +28,38 @@ void Renderer::Render(const Scene& scene)
     int m = 0;
 
     // change the spp value to change sample ammount
-    int spp = 16;
+    int spp = 256;
     std::cout << "SPP: " << spp << "\n";
-    for (uint32_t j = 0; j < scene.height; ++j) {
-        for (uint32_t i = 0; i < scene.width; ++i) {
-            // generate primary ray direction
-            float x = (2 * (i + 0.5) / (float)scene.width - 1) *
-                      imageAspectRatio * scale;
-            float y = (1 - 2 * (j + 0.5) / (float)scene.height) * scale;
 
-            Vector3f dir = normalize(Vector3f(-x, y, 1));
-            for (int k = 0; k < spp; k++){
-                framebuffer[m] += scene.castRay(Ray(eye_pos, dir), 0) / spp;  
+    int num_threads = 64;
+    std::thread th[num_threads];
+    int thread_height = scene.height/num_threads;
+
+    auto renderRows = [&](uint32_t start_height, uint32_t end_height) {
+        for (uint32_t j = start_height; j < end_height; ++j) {
+            for (uint32_t i = 0; i < scene.width; ++i) {
+                // generate primary ray direction
+                // random SSAA
+                for (int k = 0; k < spp; k++){
+                    float x = (2 * (i + get_random_float()) / (float)scene.width - 1) * imageAspectRatio * scale;
+                    float y = (1 - 2 * (j + get_random_float()) / (float)scene.height) * scale;
+                    Vector3f dir = normalize(Vector3f(-x, y, 1));
+                    framebuffer[(int)(j*scene.width+i)] += scene.castRay(Ray(eye_pos, dir), 0) / spp;  
+                }
             }
-            m++;
-        }
-        UpdateProgress(j / (float)scene.height);
+            progressMtx.lock();
+            progress++;
+            UpdateProgress(progress / (float)scene.height);
+            progressMtx.unlock();
+        }};
+    
+    for (int t = 0; t < num_threads; ++t) {
+        th[t] = std::thread(renderRows, t*thread_height, (t+1)*thread_height);
     }
+    for (int t = 0; t < num_threads; ++t) {
+        th[t].join();
+    }
+
     UpdateProgress(1.f);
 
     // save framebuffer to file
